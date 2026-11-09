@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <!-- A fake vertical video feed used by the smoke test. -->
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; height: 100%; background: #000; }
+      #feed { height: 100vh; overflow-y: auto; scroll-snap-type: y mandatory; }
+      .item { height: 100vh; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; }
+      video { width: 90%; height: 80%; background: #222; }
+      #next { position: fixed; right: 8px; bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="feed"></div>
+    <button id="next">next</button>
+    <script>
+      const feed = document.getElementById('feed');
+      const vids = [];
+      for (let i = 0; i < 8; i++) {
+        const item = document.createElement('div');
+        item.className = 'item';
+        const c = document.createElement('canvas');
+        c.width = 32; c.height = 32;
+        const ctx = c.getContext('2d');
+        setInterval(() => { ctx.fillStyle = `hsl(${(Date.now() / 10 + i * 40) % 360},80%,50%)`; ctx.fillRect(0, 0, 32, 32); }, 50);
+        const v = document.createElement('video');
+        v.srcObject = c.captureStream(20);
+        v.muted = true;
+        v.dataset.index = i;
+        item.append(v);
+        feed.append(item);
+        vids.push(v);
+      }
+      const current = () => Math.round(feed.scrollTop / feed.clientHeight);
+      const go = (d) => feed.scrollTo({ top: (current() + d) * feed.clientHeight, behavior: 'instant' });
+      // Like the real sites: autoplay whatever is on screen.
+      feed.addEventListener('scroll', () => { const v = vids[current()]; if (v && v.paused) v.play().catch(() => {}); });
+      vids[0].play().catch(() => {});
+      if (location.hash.includes('keys')) document.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') go(1); });
+      document.getElementById('next').onclick = () => go(1);
+      window.mockState = () => ({ index: current(), playing: vids.filter((v) => !v.paused).map((v) => +v.dataset.index) });
+    </script>
+  </body>
+</html>

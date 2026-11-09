@@ -1,0 +1,16 @@
+{
+  "name": "brain-blight",
+  "version": "0.1.0",
+  "description": "Personal desktop app that interlaces TikTok, Instagram Reels and YouTube Shorts into one feed.",
+  "main": "src/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.js && node --check src/feed-preload.js && node --check src/ui-preload.js && node --check src/ui/ui.js && node --check config/platforms.js",
+    "smoke": "electron test/smoke.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "45.2.3"
+  }
+}

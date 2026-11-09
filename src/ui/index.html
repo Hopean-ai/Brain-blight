@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+    <title>Brain Blight</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body>
+    <header id="bar">
+      <div id="feed" class="row">
+        <nav id="pills" aria-label="Platforms"></nav>
+        <span id="notice" hidden></span>
+        <div class="spacer"></div>
+        <button id="mute" title="Mute (Ctrl/Cmd+Shift+M)">🔊</button>
+        <button id="next" title="Next (↓ or scroll)">Next ↓</button>
+        <button id="login" class="ghost" title="Log in (Ctrl/Cmd+L)">Log in</button>
+      </div>
+      <div id="setup" class="row" hidden>
+        <span id="setup-text"></span>
+        <div class="spacer"></div>
+        <button id="setup-back" class="ghost">Back</button>
+        <button id="setup-next">Next</button>
+        <button id="setup-finish" class="ghost">Done</button>
+      </div>
+    </header>
+    <script src="ui.js"></script>
+  </body>
+</html>
