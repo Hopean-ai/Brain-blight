@@ -10,6 +10,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bb-smoke-'));
 app.setPath('userData', tmp);
 fs.writeFileSync(path.join(tmp, 'settings.json'), JSON.stringify({ setupDone: true }));
 process.env.BB_CONFIG = path.join(__dirname, 'mock-config.js');
+process.env.BB_HEADLESS = '1'; // no dialogs
 
 const bb = require('../src/main.js');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -69,6 +70,17 @@ app.whenReady().then(async () => {
     s = await snapshot('arrow   ');
     assert.equal(bb.state.active, 1);
     assert.equal(s[0].index, 2, 'arrow advanced the feed we left by exactly one');
+
+    // Importing a login from a browser cookie export lands in that platform's session only.
+    const file = path.join(tmp, 'cookies.txt');
+    fs.writeFileSync(file, '.youtube.com\tTRUE\t/\tTRUE\t1893456000\tSID\tabc\n');
+    const result = await bb.importCookies(1, file);
+    assert.deepEqual(result, { imported: 1, failed: 0 });
+    const got = await bb.views[1].view.webContents.session.cookies.get({ url: 'https://www.youtube.com/' });
+    assert.equal(got.find((c) => c.name === 'SID')?.value, 'abc');
+    const other = await bb.views[0].view.webContents.session.cookies.get({ url: 'https://www.youtube.com/' });
+    assert.equal(other.length, 0, 'other platforms do not get the cookie');
+    console.log('cookie import ok');
 
     console.log('\nSMOKE TEST PASSED');
     app.exit(0);

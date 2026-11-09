@@ -30,6 +30,20 @@ On first launch the top bar walks you through each platform's login page: **Log 
 
 You can come back to this any time with the **Log in** button or <kbd>Ctrl/Cmd</kbd>+<kbd>L</kbd>.
 
+### Signing in to YouTube (Google)
+
+Google blocks signing in from inside apps ("This browser or app may not be secure"). Instead, sign in with your normal browser and bring that login into the app:
+
+1. In Chrome, Edge, Brave or Firefox, install the **Get cookies.txt LOCALLY** extension. It's open source and never uploads anything.
+2. Go to [youtube.com](https://www.youtube.com) and make sure you're signed in.
+3. Click the extension and choose **Export** to save a `youtube.com_cookies.txt` file.
+4. In Brain Blight, go to YouTube: during setup that's the *Shorts* step, and later you can click **Shorts** in the top bar. Then click **Import login…**, or use **Feed → Import login from browser…** (<kbd>Ctrl/Cmd</kbd>+<kbd>I</kbd>), and pick the file.
+5. The Shorts feed reloads signed in. Delete the cookies file afterwards, because it's your login.
+
+The app only keeps the YouTube and Google cookies from the file and stores them in the YouTube session alone. It also works for TikTok or Instagram if their login ever gives you trouble: export while on that site and import while that platform is showing.
+
+If Google signs you out again after a while, repeat the export and import. Google sometimes ties a login to the browser it was created in.
+
 ## Controls
 
 | Action | How |
@@ -41,6 +55,7 @@ You can come back to this any time with the **Log in** button or <kbd>Ctrl/Cmd</
 | Mute / unmute | 🔊 button or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> |
 | Reload the current feed (if you clicked away from it) | <kbd>Ctrl/Cmd</kbd>+<kbd>R</kbd> |
 | Log in again | **Log in** button or <kbd>Ctrl/Cmd</kbd>+<kbd>L</kbd> |
+| Import a login from your browser | **Import login…** (during setup) or <kbd>Ctrl/Cmd</kbd>+<kbd>I</kbd> |
 
 ## When a site changes
 
@@ -52,7 +67,7 @@ Other things you can set there: turn a platform off (`enabled: false`), change t
 
 ## Known limits
 
-- **Google sign-in** sometimes refuses embedded browsers ("This browser or app may not be secure"). Shorts works fine logged out; if you want your own recommendations, try logging in via the popup again or from youtube.com's own *Sign in* button.
+- **Google sign-in** refuses apps like this one, so use [Import login](#signing-in-to-youtube-google) instead. Shorts also works fine logged out.
 - These sites change often. Expect to tweak `config/platforms.js` now and then.
 - This is for personal use. Respect each platform's terms.
 
@@ -60,6 +75,7 @@ Other things you can set there: turn a platform off (`enabled: false`), change t
 
 ```bash
 npm run check   # syntax check
+npm test        # cookie-import parser
 npm run smoke   # drives the real app against a fake feed (test/mock-feed.html)
                 # on headless Linux: xvfb-run -a npm run smoke
 ```

@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('bb', {
   mute: () => ipcRenderer.send('ui:mute'),
   login: () => ipcRenderer.send('ui:login'),
   reload: () => ipcRenderer.send('ui:reload'),
+  importCookies: () => ipcRenderer.send('ui:import-cookies'),
   setupNext: () => ipcRenderer.send('ui:setup-next'),
   setupBack: () => ipcRenderer.send('ui:setup-back'),
   setupFinish: () => ipcRenderer.send('ui:setup-finish'),

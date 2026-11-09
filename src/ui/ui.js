@@ -9,6 +9,7 @@ $('login').onclick = () => api.login();
 $('setup-next').onclick = () => api.setupNext();
 $('setup-back').onclick = () => api.setupBack();
 $('setup-finish').onclick = () => api.setupFinish();
+$('setup-import').onclick = () => api.importCookies();
 
 function render(s) {
   const setup = s.mode === 'setup';

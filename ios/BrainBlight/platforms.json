@@ -6,6 +6,9 @@
       "enabled": true,
       "feedUrl": "https://www.tiktok.com/foryou",
       "loginUrl": "https://www.tiktok.com/login",
+      "cookieDomains": [
+        "tiktok.com"
+      ],
       "itemSelector": "[data-e2e=\"recommend-list-item-container\"], article[data-scroll-index]",
       "advance": [
         {
@@ -28,6 +31,9 @@
       "enabled": true,
       "feedUrl": "https://www.instagram.com/reels/",
       "loginUrl": "https://www.instagram.com/accounts/login/",
+      "cookieDomains": [
+        "instagram.com"
+      ],
       "itemSelector": null,
       "advance": [
         {
@@ -46,6 +52,10 @@
       "enabled": true,
       "feedUrl": "https://m.youtube.com/shorts",
       "loginUrl": "https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fm.youtube.com%2Fshorts",
+      "cookieDomains": [
+        "youtube.com",
+        "google.com"
+      ],
       "itemSelector": "ytm-reel-item-renderer, ytm-shorts-player-renderer",
       "advance": [
         {

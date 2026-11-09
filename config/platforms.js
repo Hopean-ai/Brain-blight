@@ -19,6 +19,8 @@
 //                                                      into view
 //                 { type: 'key', key: 'ArrowDown' }    press a key in the page
 //   verifyMs    How long to wait before deciding a step did nothing.
+//   cookieDomains  Sites whose cookies "Import login from browser" keeps for
+//               this platform (everything else in the file is ignored).
 //   ios         Optional overrides used only by the iPhone app (mobile sites
 //               have different URLs and layouts). Run `npm run ios:config`
 //               after editing so the iPhone app picks them up.
@@ -32,6 +34,7 @@ module.exports = {
       enabled: true,
       feedUrl: 'https://www.tiktok.com/foryou',
       loginUrl: 'https://www.tiktok.com/login',
+      cookieDomains: ['tiktok.com'],
       itemSelector: '[data-e2e="recommend-list-item-container"], article[data-scroll-index]',
       advance: [
         { type: 'key', key: 'ArrowDown' },
@@ -53,6 +56,7 @@ module.exports = {
       enabled: true,
       feedUrl: 'https://www.instagram.com/reels/',
       loginUrl: 'https://www.instagram.com/accounts/login/',
+      cookieDomains: ['instagram.com'],
       // Instagram uses generated class names, so we rely on the <video> fallback.
       itemSelector: null,
       advance: [
@@ -67,6 +71,9 @@ module.exports = {
       enabled: true,
       feedUrl: 'https://www.youtube.com/shorts',
       loginUrl: 'https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fshorts',
+      // Google blocks sign-in inside apps. Sign in in your normal browser and
+      // use "Import login from browser" instead (see README).
+      cookieDomains: ['youtube.com', 'google.com'],
       itemSelector: 'ytd-reel-video-renderer',
       advance: [
         { type: 'click', selector: '#navigation-button-down button, button[aria-label="Next video"]' },
