@@ -2,6 +2,8 @@
 
 A personal desktop app that interlaces **TikTok**, **Instagram Reels** and **YouTube Shorts** into one feed.
 
+It runs on **desktop** (Mac, Windows, Linux) and **iPhone** ([iPhone install guide](ios/README.md)).
+
 It doesn't scrape anything. Each platform runs as its own real, signed-in browser page inside the app, and Brain Blight only decides which one you see and when it moves on.
 
 ## How it works
@@ -64,10 +66,14 @@ npm run smoke   # drives the real app against a fake feed (test/mock-feed.html)
 
 The smoke test checks the rotation order, that every hidden feed is paused and muted, that the feed you leave advances by exactly one video, that going back doesn't skip, and that wheel and arrow input both work.
 
+`npm run test:ios-agent` runs the iPhone app's in-page script against the same fake feed in Chromium (needs the `playwright` package). The iPhone app itself is compiled by the **Build** GitHub Actions workflow, which also publishes the installable `.ipa`.
+
 ```
-config/platforms.js   all site-specific selectors and URLs
-src/main.js           window, one view per platform, rotation, login setup
-src/feed-preload.js   runs inside each site: pause/mute, swipe capture, advancing
-src/ui/               the top bar
-test/                 mock feed + smoke test
+config/platforms.js        all site-specific selectors and URLs (desktop + iOS overrides)
+src/main.js                desktop: window, one view per platform, rotation, login setup
+src/feed-preload.js        desktop: runs inside each site (pause/mute, swipes, advancing)
+src/ui/                    desktop: the top bar
+ios/BrainBlight/           iPhone app (Swift, WKWebView) + its in-page feed-agent.js
+scripts/export-ios-config.js  writes ios/BrainBlight/platforms.json from the config
+test/                      mock feed, desktop smoke test, iOS agent test
 ```

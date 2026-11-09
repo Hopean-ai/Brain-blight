@@ -19,6 +19,9 @@
 //                                                      into view
 //                 { type: 'key', key: 'ArrowDown' }    press a key in the page
 //   verifyMs    How long to wait before deciding a step did nothing.
+//   ios         Optional overrides used only by the iPhone app (mobile sites
+//               have different URLs and layouts). Run `npm run ios:config`
+//               after editing so the iPhone app picks them up.
 
 module.exports = {
   // Order here is the rotation order.
@@ -36,6 +39,13 @@ module.exports = {
         { type: 'scroll' },
       ],
       verifyMs: 900,
+      ios: {
+        advance: [
+          { type: 'scroll' },
+          { type: 'click', selector: 'button[data-e2e="arrow-right"], button[aria-label*="next" i]' },
+          { type: 'key', key: 'ArrowDown' },
+        ],
+      },
     },
     {
       id: 'instagram',
@@ -64,6 +74,12 @@ module.exports = {
         { type: 'scroll' },
       ],
       verifyMs: 900,
+      ios: {
+        feedUrl: 'https://m.youtube.com/shorts',
+        loginUrl: 'https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fm.youtube.com%2Fshorts',
+        itemSelector: 'ytm-reel-item-renderer, ytm-shorts-player-renderer',
+        advance: [{ type: 'scroll' }, { type: 'key', key: 'ArrowDown' }],
+      },
     },
   ],
 

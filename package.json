@@ -7,7 +7,9 @@
   "scripts": {
     "start": "electron .",
     "check": "node --check src/main.js && node --check src/feed-preload.js && node --check src/ui-preload.js && node --check src/ui/ui.js && node --check config/platforms.js",
-    "smoke": "electron test/smoke.js"
+    "smoke": "electron test/smoke.js",
+    "ios:config": "node scripts/export-ios-config.js",
+    "test:ios-agent": "node test/ios-agent.test.js"
   },
   "license": "MIT",
   "devDependencies": {

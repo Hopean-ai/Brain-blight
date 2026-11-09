@@ -2,3 +2,7 @@ node_modules/
 out/
 dist/
 .DS_Store
+ios/*.xcodeproj/
+ios/BrainBlight/Info.plist
+build/
+*.ipa
