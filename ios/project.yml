@@ -1,0 +1,39 @@
+# XcodeGen spec. Generate the Xcode project with:  cd ios && xcodegen generate
+name: BrainBlight
+options:
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  BrainBlight:
+    type: application
+    platform: iOS
+    sources:
+      - path: BrainBlight
+    settings:
+      base:
+        PRODUCT_NAME: BrainBlight
+        # Change this to something unique to you if Xcode says the ID is taken.
+        PRODUCT_BUNDLE_IDENTIFIER: app.brainblight.feed
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_STYLE: Automatic
+    info:
+      path: BrainBlight/Info.plist
+      properties:
+        CFBundleDisplayName: Brain Blight
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UIViewControllerBasedStatusBarAppearance: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate

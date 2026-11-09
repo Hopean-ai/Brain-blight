@@ -1,0 +1,68 @@
+{
+  "platforms": [
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "enabled": true,
+      "feedUrl": "https://www.tiktok.com/foryou",
+      "loginUrl": "https://www.tiktok.com/login",
+      "itemSelector": "[data-e2e=\"recommend-list-item-container\"], article[data-scroll-index]",
+      "advance": [
+        {
+          "type": "scroll"
+        },
+        {
+          "type": "click",
+          "selector": "button[data-e2e=\"arrow-right\"], button[aria-label*=\"next\" i]"
+        },
+        {
+          "type": "key",
+          "key": "ArrowDown"
+        }
+      ],
+      "verifyMs": 900
+    },
+    {
+      "id": "instagram",
+      "name": "Reels",
+      "enabled": true,
+      "feedUrl": "https://www.instagram.com/reels/",
+      "loginUrl": "https://www.instagram.com/accounts/login/",
+      "itemSelector": null,
+      "advance": [
+        {
+          "type": "scroll"
+        },
+        {
+          "type": "key",
+          "key": "ArrowDown"
+        }
+      ],
+      "verifyMs": 900
+    },
+    {
+      "id": "youtube",
+      "name": "Shorts",
+      "enabled": true,
+      "feedUrl": "https://m.youtube.com/shorts",
+      "loginUrl": "https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fm.youtube.com%2Fshorts",
+      "itemSelector": "ytm-reel-item-renderer, ytm-shorts-player-renderer",
+      "advance": [
+        {
+          "type": "scroll"
+        },
+        {
+          "type": "key",
+          "key": "ArrowDown"
+        }
+      ],
+      "verifyMs": 900
+    }
+  ],
+  "input": {
+    "wheelThreshold": 40,
+    "wheelQuietMs": 220,
+    "swipeMinPx": 60,
+    "cooldownMs": 450
+  }
+}

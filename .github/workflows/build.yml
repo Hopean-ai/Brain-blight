@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  desktop:
+    name: Desktop smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: xvfb-run -a npm run smoke -- --no-sandbox
+
+  ios:
+    name: iPhone app (unsigned .ipa)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Export platform config for iOS
+        run: node scripts/export-ios-config.js && git diff --exit-code ios/BrainBlight/platforms.json || (echo "::error::ios/BrainBlight/platforms.json is out of date. Run npm run ios:config and commit it." && exit 1)
+      - run: brew install xcodegen
+      - run: cd ios && xcodegen generate
+      - name: Build
+        run: |
+          xcodebuild \
+            -project ios/BrainBlight.xcodeproj \
+            -scheme BrainBlight \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+      - name: Package .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/BrainBlight.app Payload/
+          zip -qry BrainBlight-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BrainBlight-unsigned-ipa
+          path: BrainBlight-unsigned.ipa
+          retention-days: 30
