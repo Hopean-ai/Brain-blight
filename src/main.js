@@ -12,7 +12,8 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const { app, BrowserWindow, WebContentsView, ipcMain, Menu, session, shell } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, Menu, dialog, session, shell } = require('electron');
+const { parseCookieFile, forDomains } = require('./cookies');
 
 const BAR_HEIGHT = 44;
 
@@ -223,6 +224,62 @@ function finishSetup() {
 }
 
 // ---------------------------------------------------------------------------
+// Import a login from a normal browser (cookie export)
+
+async function importCookies(index, file) {
+  const entry = views[index];
+  if (!entry) return { imported: 0, failed: 0 };
+  const { platform, view } = entry;
+
+  if (!file) {
+    const pick = await dialog.showOpenDialog(win, {
+      title: `Import ${platform.name} login from your browser`,
+      buttonLabel: 'Import',
+      filters: [{ name: 'Cookie export (cookies.txt or JSON)', extensions: ['txt', 'json'] }],
+      properties: ['openFile'],
+    });
+    if (pick.canceled || !pick.filePaths[0]) return null;
+    file = pick.filePaths[0];
+  }
+
+  let cookies;
+  try {
+    cookies = forDomains(parseCookieFile(fs.readFileSync(file, 'utf8')), platform.cookieDomains);
+  } catch (err) {
+    if (!process.env.BB_HEADLESS) dialog.showErrorBox('Import failed', `That file couldn't be read as a cookie export.\n\n${err.message}`);
+    return { imported: 0, failed: 0, error: err.message };
+  }
+
+  const ses = view.webContents.session;
+  let imported = 0;
+  let failed = 0;
+  for (const c of cookies) {
+    try {
+      await ses.cookies.set(c);
+      imported++;
+    } catch {
+      failed++;
+    }
+  }
+  await ses.cookies.flushStore();
+
+  // Show the feed with the imported login.
+  if (imported > 0) view.webContents.loadURL(platform.feedUrl).catch(() => {});
+
+  if (!process.env.BB_HEADLESS) {
+    const domains = (platform.cookieDomains || []).join(', ');
+    await dialog.showMessageBox(win, {
+      type: imported ? 'info' : 'warning',
+      message: imported ? `Imported your ${platform.name} login.` : `No ${platform.name} login found in that file.`,
+      detail: imported
+        ? `${imported} cookies imported${failed ? `, ${failed} skipped` : ''}. The feed is reloading; you should now be signed in.`
+        : `Make sure you exported cookies while on ${domains} and signed in.`,
+    });
+  }
+  return { imported, failed };
+}
+
+// ---------------------------------------------------------------------------
 // UI bar
 
 function pushUi() {
@@ -263,6 +320,7 @@ ipcMain.on('ui:setup-next', () => {
 ipcMain.on('ui:setup-back', () => setupGo(state.setupIndex - 1));
 ipcMain.on('ui:setup-finish', () => finishSetup());
 ipcMain.on('ui:reload', () => reloadCurrentFeed());
+ipcMain.on('ui:import-cookies', () => importCookies(state.mode === 'setup' ? state.setupIndex : state.active));
 
 // ---------------------------------------------------------------------------
 // Feed preload IPC
@@ -321,6 +379,11 @@ function buildMenu() {
         { label: 'Previous platform', accelerator: 'Up', registerAccelerator: false, click: () => navigate('prev') },
         { type: 'separator' },
         { label: 'Log in to platforms…', accelerator: 'CmdOrCtrl+L', click: () => startSetup(state.active) },
+        {
+          label: 'Import login from browser…',
+          accelerator: 'CmdOrCtrl+I',
+          click: () => importCookies(state.mode === 'setup' ? state.setupIndex : state.active),
+        },
         { label: 'Reload this feed', accelerator: 'CmdOrCtrl+R', click: () => reloadCurrentFeed() },
         { label: 'Mute / unmute', accelerator: 'CmdOrCtrl+Shift+M', click: () => setMuted(!state.muted) },
         { type: 'separator' },
@@ -398,4 +461,4 @@ app.on('window-all-closed', () => {
 });
 
 // Exposed for the smoke test only.
-module.exports = { state, views, navigate, finishSetup };
+module.exports = { state, views, navigate, finishSetup, importCookies };
