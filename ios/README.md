@@ -8,7 +8,7 @@ Apple won't allow an app like this in the App Store, so you install it yourself 
 
 GitHub builds the app for you on every push, so you only have to install it.
 
-1. **Get the app file.** On GitHub, open the repo's **Actions** tab → the latest green **Build** run → under *Artifacts*, download **BrainBlight-unsigned-ipa**. Unzip it to get `BrainBlight-unsigned.ipa`.
+1. **Get the app file.** Download **[BrainBlight-unsigned.ipa](https://github.com/Hopean-ai/Brain-blight/releases/latest/download/BrainBlight-unsigned.ipa)**. That link always points at the newest build, and the file is also listed on the repo's **Releases** page. (Each build run on the **Actions** tab also keeps a zipped copy for 30 days.)
 2. **Install [Sideloadly](https://sideloadly.io)** on your computer (on Windows, also install iTunes and iCloud from Apple's website, not the Microsoft Store).
 3. Plug in your iPhone, open Sideloadly, drag in the `.ipa`, type your Apple ID, and press **Start**. Sideloadly signs the app with your Apple ID and installs it.
 4. On the iPhone:

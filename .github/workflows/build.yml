@@ -25,6 +25,8 @@ jobs:
   ios:
     name: iPhone app (unsigned .ipa)
     runs-on: macos-15
+    permissions:
+      contents: write # to publish the "latest" release on main
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,3 +57,17 @@ jobs:
           name: BrainBlight-unsigned-ipa
           path: BrainBlight-unsigned.ipa
           retention-days: 30
+      # On main, also publish the .ipa as the "latest" GitHub Release so there's
+      # one stable download link (no zip, no expiry):
+      # https://github.com/<owner>/<repo>/releases/latest/download/BrainBlight-unsigned.ipa
+      - name: Publish latest iPhone build
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest BrainBlight-unsigned.ipa \
+            --target "$GITHUB_SHA" \
+            --title "Latest iPhone build" \
+            --notes "Built from $GITHUB_SHA. Install with Sideloadly; see ios/README.md." \
+            --latest
