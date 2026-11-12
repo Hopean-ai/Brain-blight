@@ -1,6 +1,6 @@
 # Brain Blight
 
-A personal app that interlaces **TikTok**, **Instagram Reels**, **YouTube Shorts**, **Facebook Reels**, **Snapchat Spotlight**, **X**, **Bluesky**, **Reddit** and **LinkedIn** into one feed. You choose which of them are in the rotation.
+A personal app that interlaces **TikTok**, **Instagram Reels**, **YouTube Shorts**, **Facebook Reels**, **Snapchat Spotlight**, **X**, **Bluesky**, **Reddit** and **LinkedIn** into one feed. TikTok, Reels and Shorts are on to start with, and you can switch the rest on whenever you like.
 
 It runs on **desktop** (Mac, Windows, Linux) and **iPhone** ([iPhone install guide](ios/README.md)).
 
@@ -26,13 +26,13 @@ npm start
 
 ### First run: log in
 
-On first launch the top bar walks you through each platform's login page: **Log in to TikTok (1/9)** → *Next* → Reels → *Next* → … → *Start watching*. Only the sites you have switched on are included. Skip any you don't want to log in to; most feeds still work logged out.
+On first launch the top bar walks you through each platform's login page: **Log in to TikTok (1/3)** → *Next* → Reels → *Next* → Shorts → *Start watching*. Only the sites you have switched on are included, so turn a site on first if you want to log in to it. Skip any you don't want to log in to; most feeds still work logged out.
 
 You can come back to this any time with the **Log in** button or <kbd>Ctrl/Cmd</kbd>+<kbd>L</kbd>.
 
 ### Choose your sites
 
-Click **Sites ▾** at the left of the top bar (or use the **Sites** menu) and tick the sites you want. On iPhone, tap **Sites**. Your choice is remembered.
+The first time you run it, only TikTok, Reels and Shorts are on. Click **Sites ▾** at the left of the top bar (or use the **Sites** menu) and tick the sites you want. On iPhone, tap **Sites**. Your choice is remembered.
 
 A site that is switched off isn't loaded at all, so it uses no memory, and it stays signed in for when you turn it back on. Every site that is on keeps a live page in the background, so if the app feels heavy, turn a few off.
 
