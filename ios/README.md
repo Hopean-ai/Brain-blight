@@ -1,6 +1,6 @@
 # Brain Blight on iPhone
 
-The iPhone app works the same way as the desktop app: TikTok, Instagram Reels and YouTube Shorts each run as their own logged-in page, only one is visible, and every swipe up moves the platform you're leaving to its next video and then shows the next platform. Swipe down goes back a platform without skipping anything.
+The iPhone app works the same way as the desktop app: each site (TikTok, Reels, Shorts and the rest; tap **Sites** to choose which) runs as their own logged-in page, only one is visible, and every swipe up moves the platform you're leaving to its next video and then shows the next platform. Swipe down goes back a platform without skipping anything.
 
 Apple won't allow an app like this in the App Store, so you install it yourself ("sideloading"). It needs **iOS 17 or newer**.
 

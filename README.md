@@ -1,6 +1,6 @@
 # Brain Blight
 
-A personal desktop app that interlaces **TikTok**, **Instagram Reels** and **YouTube Shorts** into one feed.
+A personal app that interlaces **TikTok**, **Instagram Reels**, **YouTube Shorts**, **Facebook Reels**, **Snapchat Spotlight**, **X**, **Bluesky**, **Reddit** and **LinkedIn** into one feed. You choose which of them are in the rotation.
 
 It runs on **desktop** (Mac, Windows, Linux) and **iPhone** ([iPhone install guide](ios/README.md)).
 
@@ -8,9 +8,9 @@ It doesn't scrape anything. Each platform runs as its own real, signed-in browse
 
 ## How it works
 
-- **One page per platform, logged in for good.** Each platform gets its own persistent browser session (`persist:tiktok`, `persist:instagram`, `persist:youtube`), so you log in once and stay logged in between launches.
+- **One page per platform, logged in for good.** Each platform gets its own persistent browser session (`persist:tiktok`, `persist:instagram`, `persist:youtube`, …), so you log in once and stay logged in between launches.
 - **Only one is visible.** The pages are stacked; the active one is on top. Hidden pages are muted at the browser level, and a small script inside each page keeps their videos paused.
-- **Every swipe interlaces.** Scroll, swipe or press <kbd>↓</kbd> and the platform you're leaving moves to its next video in the background, then the app rotates to the next platform: TikTok 1, Reels 1, Shorts 1, TikTok 2, Reels 2, …
+- **Every swipe interlaces.** Scroll, swipe or press <kbd>↓</kbd> and the platform you're leaving moves to its next video in the background, then the app rotates to the next platform: TikTok 1, Reels 1, Shorts 1, …, TikTok 2, Reels 2, …
 - **Switches feel instant.** Because each platform advanced while you were watching the others, its next video is already loaded and paused, waiting for you. Background pages are never throttled.
 
 ## Run it
@@ -26,9 +26,25 @@ npm start
 
 ### First run: log in
 
-On first launch the top bar walks you through each platform's login page: **Log in to TikTok (1/3)** → *Next* → Reels → *Next* → Shorts → *Start watching*. Skip any you don't want to log in to; most feeds still work logged out.
+On first launch the top bar walks you through each platform's login page: **Log in to TikTok (1/9)** → *Next* → Reels → *Next* → … → *Start watching*. Only the sites you have switched on are included. Skip any you don't want to log in to; most feeds still work logged out.
 
 You can come back to this any time with the **Log in** button or <kbd>Ctrl/Cmd</kbd>+<kbd>L</kbd>.
+
+### Choose your sites
+
+Click **Sites ▾** at the left of the top bar (or use the **Sites** menu) and tick the sites you want. On iPhone, tap **Sites**. Your choice is remembered.
+
+A site that is switched off isn't loaded at all, so it uses no memory, and it stays signed in for when you turn it back on. Every site that is on keeps a live page in the background, so if the app feels heavy, turn a few off.
+
+| Site | What you get |
+| --- | --- |
+| TikTok, Reels, Shorts, FB Reels, Spotlight | The site's own swipeable short-video feed. |
+| X | Your home timeline, stopping only on posts with a video. Needs a login. |
+| Bluesky | Bluesky's "Video" feed, stopping only on posts with a video. |
+| Reddit | A few video-heavy subreddits, stopping only on video posts. Change the subreddits in `feedUrl` in the config. |
+| LinkedIn | Your normal feed, stopping only on posts with a video. Needs a login. |
+
+X, Bluesky, Reddit and LinkedIn have no short-video page on the web, so they are regular feeds that Brain Blight walks through video by video. Expect them to be rougher than the first five.
 
 ### Signing in to YouTube (Google)
 
@@ -51,6 +67,7 @@ If Google signs you out again after a while, repeat the export and import. Googl
 | Next (advance + rotate) | Scroll / trackpad swipe down, touch swipe up, <kbd>↓</kbd>, <kbd>Page Down</kbd>, or the **Next** button |
 | Back to the previous platform | Scroll up, <kbd>↑</kbd>, <kbd>Page Up</kbd> (doesn't skip anything) |
 | Jump to a platform | Click its name in the top bar |
+| Choose which sites are in the rotation | **Sites ▾** button or the **Sites** menu |
 | Scroll normally inside a page (comments, captions) | Hold <kbd>Alt</kbd> while scrolling |
 | Mute / unmute | 🔊 button or <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> |
 | Reload the current feed (if you clicked away from it) | <kbd>Ctrl/Cmd</kbd>+<kbd>R</kbd> |
@@ -63,7 +80,7 @@ Everything site-specific is in **[`config/platforms.js`](config/platforms.js)**:
 
 The app tries each way in order and checks whether the centred video actually changed before moving on, so one broken selector usually just means it falls back to the next method. If every method fails for a platform, the top bar says so; that's when to open the config and fix the selector (<kbd>Alt</kbd>+<kbd>Ctrl/Cmd</kbd>+<kbd>I</kbd> opens DevTools for the current feed).
 
-Other things you can set there: turn a platform off (`enabled: false`), change the rotation order, and tune scroll sensitivity. To keep your own config outside the repo, run with `BB_CONFIG=/path/to/my-platforms.js npm start`.
+Other things you can set there: remove a platform completely (`enabled: false`), change the rotation order, and tune scroll sensitivity. To keep your own config outside the repo, run with `BB_CONFIG=/path/to/my-platforms.js npm start`.
 
 ## Known limits
 

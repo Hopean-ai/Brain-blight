@@ -3,6 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const api = window.bb;
 
+$('sites').onclick = () => api.sites();
 $('next').onclick = () => api.next();
 $('mute').onclick = () => api.mute();
 $('login').onclick = () => api.login();
@@ -26,6 +27,8 @@ function render(s) {
       return b;
     }),
   );
+
+  pills.querySelector('.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
   $('mute').textContent = s.muted ? '🔇' : '🔊';
   $('notice').hidden = !s.notice;

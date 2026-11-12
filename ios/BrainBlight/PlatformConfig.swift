@@ -6,6 +6,8 @@ struct AdvanceStep: Codable {
     let type: String
     let selector: String?
     let key: String?
+    let block: String?
+    let tries: Int?
 }
 
 struct Platform: Codable {

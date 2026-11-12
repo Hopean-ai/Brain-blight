@@ -124,7 +124,7 @@ const { ipcRenderer } = require('electron');
     return document.scrollingElement || document.documentElement;
   }
 
-  function scrollToNext() {
+  function scrollToNext(block) {
     const list = cfg.itemSelector && items().length ? items() : videos();
     const cur = centred(list);
     if (cur) {
@@ -132,7 +132,7 @@ const { ipcRenderer } = require('electron');
         .filter((b) => b.r.top > cur.r.top + 20)
         .sort((a, b) => a.r.top - b.r.top);
       if (below.length) {
-        below[0].el.scrollIntoView({ block: 'start', behavior: 'instant' });
+        below[0].el.scrollIntoView({ block: block || 'start', behavior: 'instant' });
         return true;
       }
     }
@@ -154,7 +154,7 @@ const { ipcRenderer } = require('electron');
         return true;
       }
       case 'scroll':
-        return scrollToNext();
+        return scrollToNext(step.block);
       case 'key':
         // Ask the main process for a real (trusted) key press.
         ipcRenderer.send('bb:press-key', step.key || 'ArrowDown');
@@ -168,12 +168,16 @@ const { ipcRenderer } = require('electron');
     const before = currentKey();
     const steps = cfg.advance && cfg.advance.length ? cfg.advance : [{ type: 'scroll' }];
     for (const step of steps) {
-      if (!runStep(step)) continue;
-      await sleep(cfg.verifyMs ?? 900);
-      if (currentKey() !== before) {
-        if (state.active) playCurrent();
-        else pauseAll();
-        return { ok: true, step: step.type };
+      // `tries` lets a step repeat, for mixed feeds where the next video may
+      // be several screens of non-video posts away.
+      for (let attempt = 0; attempt < (step.tries || 1); attempt++) {
+        if (!runStep(step)) break;
+        await sleep(cfg.verifyMs ?? 900);
+        if (currentKey() !== before) {
+          if (state.active) playCurrent();
+          else pauseAll();
+          return { ok: true, step: step.type };
+        }
       }
     }
     return { ok: false };
