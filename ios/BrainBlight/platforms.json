@@ -67,6 +67,125 @@
         }
       ],
       "verifyMs": 900
+    },
+    {
+      "id": "facebook",
+      "name": "FB Reels",
+      "enabled": true,
+      "feedUrl": "https://m.facebook.com/reel/",
+      "loginUrl": "https://m.facebook.com/login/",
+      "cookieDomains": [
+        "facebook.com"
+      ],
+      "itemSelector": null,
+      "advance": [
+        {
+          "type": "scroll"
+        },
+        {
+          "type": "key",
+          "key": "ArrowDown"
+        }
+      ],
+      "verifyMs": 1000
+    },
+    {
+      "id": "snapchat",
+      "name": "Spotlight",
+      "enabled": true,
+      "feedUrl": "https://www.snapchat.com/spotlight",
+      "loginUrl": "https://accounts.snapchat.com/accounts/v2/login",
+      "cookieDomains": [
+        "snapchat.com"
+      ],
+      "itemSelector": null,
+      "advance": [
+        {
+          "type": "scroll"
+        },
+        {
+          "type": "key",
+          "key": "ArrowDown"
+        }
+      ],
+      "verifyMs": 1000
+    },
+    {
+      "id": "x",
+      "name": "X",
+      "enabled": true,
+      "feedUrl": "https://x.com/home",
+      "loginUrl": "https://x.com/i/flow/login",
+      "cookieDomains": [
+        "x.com",
+        "twitter.com"
+      ],
+      "itemSelector": "article[data-testid=\"tweet\"]:has(video), article[data-testid=\"tweet\"]:has([data-testid=\"videoPlayer\"])",
+      "advance": [
+        {
+          "type": "scroll",
+          "block": "center",
+          "tries": 6
+        }
+      ],
+      "verifyMs": 700
+    },
+    {
+      "id": "bluesky",
+      "name": "Bluesky",
+      "enabled": true,
+      "feedUrl": "https://bsky.app/profile/bsky.app/feed/thevids",
+      "loginUrl": "https://bsky.app/",
+      "cookieDomains": [
+        "bsky.app"
+      ],
+      "itemSelector": "[data-testid^=\"feedItem-by-\"]:has(video)",
+      "advance": [
+        {
+          "type": "scroll",
+          "block": "center",
+          "tries": 6
+        }
+      ],
+      "verifyMs": 700
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "enabled": true,
+      "feedUrl": "https://www.reddit.com/r/TikTokCringe+Unexpected+nextfuckinglevel+funnyvideos/",
+      "loginUrl": "https://www.reddit.com/login/",
+      "cookieDomains": [
+        "reddit.com"
+      ],
+      "itemSelector": "shreddit-post:has(shreddit-player-2, shreddit-player, video), shreddit-post[post-type=\"video\"]",
+      "advance": [
+        {
+          "type": "scroll",
+          "block": "center",
+          "tries": 6
+        }
+      ],
+      "verifyMs": 700
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "enabled": true,
+      "feedUrl": "https://www.linkedin.com/feed/",
+      "loginUrl": "https://www.linkedin.com/login",
+      "cookieDomains": [
+        "linkedin.com"
+      ],
+      "itemSelector": "[data-id^=\"urn:li:activity\"]:has(video), .feed-shared-update-v2:has(video), [role=\"article\"]:has(video)",
+      "advance": [
+        {
+          "type": "scroll",
+          "block": "center",
+          "tries": 6
+        }
+      ],
+      "verifyMs": 700
     }
   ],
   "input": {

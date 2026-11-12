@@ -1,7 +1,7 @@
 {
   "name": "brain-blight",
   "version": "0.1.0",
-  "description": "Personal desktop app that interlaces TikTok, Instagram Reels and YouTube Shorts into one feed.",
+  "description": "Personal app that interlaces TikTok, Reels, Shorts and other short-video sites into one feed.",
   "main": "src/main.js",
   "private": true,
   "scripts": {

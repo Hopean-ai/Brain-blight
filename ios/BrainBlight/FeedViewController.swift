@@ -32,6 +32,7 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
     private let container = UIView()
     private let feedBar = UIStackView()
     private let pillStack = UIStackView()
+    private let pillScroll = UIScrollView()
     private let muteButton = UIButton(type: .system)
     private let setupBar = UIStackView()
     private let setupLabel = UILabel()
@@ -43,6 +44,7 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
     private let noticeLabel = UILabel()
 
     private static let setupDoneKey = "setupDone"
+    private static let hiddenKey = "hiddenPlatforms"
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
@@ -51,18 +53,7 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         view.backgroundColor = .black
         buildUI()
 
-        for platform in config.platforms {
-            let page = Page(platform: platform, webView: makeWebView(for: platform))
-            pages.append(page)
-            container.addSubview(page.webView)
-            page.webView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                page.webView.topAnchor.constraint(equalTo: container.topAnchor),
-                page.webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-                page.webView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                page.webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            ])
-        }
+        pages = shownPlatforms().map(makePage)
 
         if UserDefaults.standard.bool(forKey: Self.setupDoneKey) {
             // Load every feed up front so each platform's first video is ready.
@@ -71,6 +62,91 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         } else {
             startSetup(at: 0)
         }
+    }
+
+    // MARK: - Which sites are in the rotation
+
+    /// We remember the sites that are switched off (not the ones that are on),
+    /// so a platform added to the config later shows up by itself.
+    private var hiddenIds: Set<String> {
+        get { Set(UserDefaults.standard.stringArray(forKey: Self.hiddenKey) ?? []) }
+        set { UserDefaults.standard.set(Array(newValue), forKey: Self.hiddenKey) }
+    }
+
+    private func shownPlatforms() -> [Platform] {
+        let hidden = hiddenIds
+        let shown = config.platforms.filter { !hidden.contains($0.id) }
+        return shown.isEmpty ? Array(config.platforms.prefix(1)) : shown
+    }
+
+    private func makePage(_ platform: Platform) -> Page {
+        let page = Page(platform: platform, webView: makeWebView(for: platform))
+        container.addSubview(page.webView)
+        page.webView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            page.webView.topAnchor.constraint(equalTo: container.topAnchor),
+            page.webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            page.webView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            page.webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+        ])
+        return page
+    }
+
+    /// Turn one site on or off. A site that is off has no web view at all; its
+    /// login is kept and comes back when it is turned on again. Returns false
+    /// when the change was refused (the last site can't be turned off).
+    @discardableResult
+    private func setPlatform(_ id: String, shown: Bool) -> Bool {
+        var hidden = hiddenIds
+        if shown { hidden.remove(id) } else { hidden.insert(id) }
+        guard config.platforms.contains(where: { !hidden.contains($0.id) }) else { return false }
+        hiddenIds = hidden
+        applySelection()
+        return true
+    }
+
+    private func applySelection() {
+        let currentId = pages.indices.contains(active) ? pages[active].platform.id : nil
+        let setupId = pages.indices.contains(setupIndex) ? pages[setupIndex].platform.id : nil
+        var existing = Dictionary(uniqueKeysWithValues: pages.map { ($0.platform.id, $0) })
+
+        pages = shownPlatforms().map { platform -> Page in
+            if let page = existing.removeValue(forKey: platform.id) { return page }
+            let page = makePage(platform)
+            load(page, platform.feedUrl)
+            return page
+        }
+        for page in existing.values {
+            page.webView.stopLoading()
+            page.webView.configuration.userContentController.removeAllScriptMessageHandlers()
+            page.webView.removeFromSuperview()
+        }
+
+        if mode == .setup {
+            if let i = pages.firstIndex(where: { $0.platform.id == setupId }) {
+                setupIndex = i
+                setActive(i)
+            } else {
+                setupGo(setupIndex)
+            }
+        } else {
+            setActive(pages.firstIndex(where: { $0.platform.id == currentId }) ?? 0)
+        }
+    }
+
+    private func showSitePicker() {
+        let picker = SitePickerViewController(
+            platforms: config.platforms,
+            isShown: { [weak self] id in self?.pages.contains { $0.platform.id == id } ?? false },
+            toggle: { [weak self] id, shown in self?.setPlatform(id, shown: shown) ?? false }
+        )
+        let nav = UINavigationController(rootViewController: picker)
+        nav.overrideUserInterfaceStyle = .dark
+        if let sheet = nav.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.prefersGrabberVisible = true
+        }
+        present(nav, animated: true)
     }
 
     // MARK: - Web views
@@ -339,6 +415,7 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         // Feed bar: platform pills, mute, log in.
         pillStack.axis = .horizontal
         pillStack.spacing = 4
+        pillStack.alignment = .center
         muteButton.addAction(UIAction { [weak self] _ in self?.toggleMute() }, for: .touchUpInside)
         let loginButton = Self.ghostButton("Log in")
         loginButton.addAction(UIAction { [weak self] _ in
@@ -348,7 +425,28 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         feedBar.axis = .horizontal
         feedBar.spacing = 6
         feedBar.alignment = .center
-        [pillStack, UIView(), muteButton, loginButton].forEach(feedBar.addArrangedSubview)
+        // The pills scroll sideways, since they no longer all fit on a phone.
+        pillScroll.showsHorizontalScrollIndicator = false
+        pillScroll.showsVerticalScrollIndicator = false
+        pillScroll.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        pillScroll.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        pillStack.translatesAutoresizingMaskIntoConstraints = false
+        pillScroll.addSubview(pillStack)
+        NSLayoutConstraint.activate([
+            pillStack.leadingAnchor.constraint(equalTo: pillScroll.contentLayoutGuide.leadingAnchor),
+            pillStack.trailingAnchor.constraint(equalTo: pillScroll.contentLayoutGuide.trailingAnchor),
+            pillStack.topAnchor.constraint(equalTo: pillScroll.contentLayoutGuide.topAnchor),
+            pillStack.bottomAnchor.constraint(equalTo: pillScroll.contentLayoutGuide.bottomAnchor),
+            pillStack.heightAnchor.constraint(equalTo: pillScroll.frameLayoutGuide.heightAnchor),
+            pillScroll.heightAnchor.constraint(equalToConstant: 44),
+        ])
+        let sitesButton = Self.ghostButton("Sites")
+        sitesButton.addAction(UIAction { [weak self] _ in self?.showSitePicker() }, for: .touchUpInside)
+        [sitesButton, muteButton, loginButton].forEach {
+            $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+            $0.setContentHuggingPriority(.required, for: .horizontal)
+        }
+        [pillScroll, sitesButton, muteButton, loginButton].forEach(feedBar.addArrangedSubview)
 
         // Setup bar: "Log in to X (1/3)", Back, Next, Done.
         setupLabel.textColor = .lightGray
@@ -419,6 +517,12 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
             }, for: .touchUpInside)
             pillStack.addArrangedSubview(button)
         }
+        // Keep the active pill in view.
+        pillScroll.layoutIfNeeded()
+        if pillStack.arrangedSubviews.indices.contains(active) {
+            let frame = pillStack.arrangedSubviews[active].frame.insetBy(dx: -8, dy: 0)
+            pillScroll.scrollRectToVisible(frame, animated: false)
+        }
 
         muteButton.setImage(UIImage(systemName: muted ? "speaker.slash.fill" : "speaker.wave.2.fill"), for: .normal)
         muteButton.tintColor = .white
@@ -474,5 +578,56 @@ private final class WeakMessageHandler: NSObject, WKScriptMessageHandler {
     init(_ target: WKScriptMessageHandler) { self.target = target }
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         target?.userContentController(userContentController, didReceive: message)
+    }
+}
+
+/// The "Sites" sheet: tick the sites you want in the rotation.
+private final class SitePickerViewController: UITableViewController {
+    private let platforms: [Platform]
+    private let isShown: (String) -> Bool
+    private let toggle: (String, Bool) -> Bool
+
+    init(platforms: [Platform], isShown: @escaping (String) -> Bool, toggle: @escaping (String, Bool) -> Bool) {
+        self.platforms = platforms
+        self.isShown = isShown
+        self.toggle = toggle
+        super.init(style: .insetGrouped)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = "Sites"
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "site")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            systemItem: .done,
+            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) }
+        )
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { platforms.count }
+
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        "Sites you turn off stay signed in. Fewer sites use less battery and memory."
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "site", for: indexPath)
+        let platform = platforms[indexPath.row]
+        var content = cell.defaultContentConfiguration()
+        content.text = platform.name
+        cell.contentConfiguration = content
+        cell.accessoryType = isShown(platform.id) ? .checkmark : .none
+        cell.tintColor = UIColor(red: 1, green: 0.24, blue: 0.43, alpha: 1)
+        return cell
+    }
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let platform = platforms[indexPath.row]
+        _ = toggle(platform.id, !isShown(platform.id))
+        tableView.reloadData()
     }
 }

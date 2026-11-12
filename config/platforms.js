@@ -6,7 +6,8 @@
 //   id          Stable key. Also names the persistent login partition
 //               ("persist:<id>"), so changing it logs you out of that platform.
 //   name        Label shown in the top bar.
-//   enabled     Set to false to drop a platform from the rotation.
+//   enabled     Set to false to remove a platform from the app entirely. To
+//               just hide one, use the Sites button in the app instead.
 //   feedUrl     Page that shows the vertical short-form feed.
 //   loginUrl    Page opened during first-run / "Log in" setup.
 //   itemSelector  CSS selector for one feed item (the card that holds a video).
@@ -16,7 +17,11 @@
 //               centred video changed. The first one that works wins.
 //                 { type: 'click',  selector: '...' }  click a "next" button
 //                 { type: 'scroll' }                   scroll the next item
-//                                                      into view
+//                                                      into view. Optional:
+//                                                      block: 'center' to centre
+//                                                      it, tries: N to keep
+//                                                      scrolling past posts
+//                                                      that have no video
 //                 { type: 'key', key: 'ArrowDown' }    press a key in the page
 //   verifyMs    How long to wait before deciding a step did nothing.
 //   cookieDomains  Sites whose cookies "Import login from browser" keeps for
@@ -87,6 +92,96 @@ module.exports = {
         itemSelector: 'ytm-reel-item-renderer, ytm-shorts-player-renderer',
         advance: [{ type: 'scroll' }, { type: 'key', key: 'ArrowDown' }],
       },
+    },
+    {
+      id: 'facebook',
+      name: 'FB Reels',
+      enabled: true,
+      feedUrl: 'https://www.facebook.com/reel/',
+      loginUrl: 'https://www.facebook.com/login/',
+      cookieDomains: ['facebook.com'],
+      itemSelector: null,
+      advance: [
+        { type: 'click', selector: '[aria-label="Next card" i], [aria-label="Next reel" i], [aria-label="Next" i][role="button"]' },
+        { type: 'key', key: 'ArrowDown' },
+        { type: 'scroll' },
+      ],
+      verifyMs: 1000,
+      ios: {
+        feedUrl: 'https://m.facebook.com/reel/',
+        loginUrl: 'https://m.facebook.com/login/',
+        advance: [{ type: 'scroll' }, { type: 'key', key: 'ArrowDown' }],
+      },
+    },
+    {
+      id: 'snapchat',
+      name: 'Spotlight',
+      enabled: true,
+      feedUrl: 'https://www.snapchat.com/spotlight',
+      loginUrl: 'https://accounts.snapchat.com/accounts/v2/login',
+      cookieDomains: ['snapchat.com'],
+      itemSelector: null,
+      advance: [
+        { type: 'key', key: 'ArrowDown' },
+        { type: 'click', selector: 'button[aria-label*="next" i], [data-testid*="next" i]' },
+        { type: 'scroll' },
+      ],
+      verifyMs: 1000,
+      ios: {
+        advance: [{ type: 'scroll' }, { type: 'key', key: 'ArrowDown' }],
+      },
+    },
+    {
+      // X has no dedicated short-video page on the web, so this walks the home
+      // timeline and only stops on posts that contain a video.
+      id: 'x',
+      name: 'X',
+      enabled: true,
+      feedUrl: 'https://x.com/home',
+      loginUrl: 'https://x.com/i/flow/login',
+      cookieDomains: ['x.com', 'twitter.com'],
+      itemSelector: 'article[data-testid="tweet"]:has(video), article[data-testid="tweet"]:has([data-testid="videoPlayer"])',
+      advance: [{ type: 'scroll', block: 'center', tries: 6 }],
+      verifyMs: 700,
+    },
+    {
+      // Bluesky's own "Video" feed. Swap feedUrl for any other feed you like.
+      id: 'bluesky',
+      name: 'Bluesky',
+      enabled: true,
+      feedUrl: 'https://bsky.app/profile/bsky.app/feed/thevids',
+      loginUrl: 'https://bsky.app/',
+      cookieDomains: ['bsky.app'],
+      itemSelector: '[data-testid^="feedItem-by-"]:has(video)',
+      advance: [{ type: 'scroll', block: 'center', tries: 6 }],
+      verifyMs: 700,
+    },
+    {
+      // Reddit has no short-video feed on the web, so this uses a handful of
+      // video-heavy subreddits and only stops on posts that contain a video.
+      // Change the subreddits in feedUrl to taste (join names with "+").
+      id: 'reddit',
+      name: 'Reddit',
+      enabled: true,
+      feedUrl: 'https://www.reddit.com/r/TikTokCringe+Unexpected+nextfuckinglevel+funnyvideos/',
+      loginUrl: 'https://www.reddit.com/login/',
+      cookieDomains: ['reddit.com'],
+      itemSelector: 'shreddit-post:has(shreddit-player-2, shreddit-player, video), shreddit-post[post-type="video"]',
+      advance: [{ type: 'scroll', block: 'center', tries: 6 }],
+      verifyMs: 700,
+    },
+    {
+      // LinkedIn's swipeable video feed only exists in its phone app, so this
+      // walks the normal feed and only stops on posts that contain a video.
+      id: 'linkedin',
+      name: 'LinkedIn',
+      enabled: true,
+      feedUrl: 'https://www.linkedin.com/feed/',
+      loginUrl: 'https://www.linkedin.com/login',
+      cookieDomains: ['linkedin.com'],
+      itemSelector: '[data-id^="urn:li:activity"]:has(video), .feed-shared-update-v2:has(video), [role="article"]:has(video)',
+      advance: [{ type: 'scroll', block: 'center', tries: 6 }],
+      verifyMs: 700,
     },
   ],
 

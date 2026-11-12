@@ -82,6 +82,27 @@ app.whenReady().then(async () => {
     assert.equal(other.length, 0, 'other platforms do not get the cookie');
     console.log('cookie import ok');
 
+    // Site picker: turning a site off removes it from the rotation, and it
+    // comes back (in config order) when turned on again.
+    const ids = () => bb.views.map((e) => e.platform.id);
+    assert.equal(bb.setPlatformShown('mock-click', false), true);
+    assert.deepEqual(ids(), ['mock-key', 'mock-scroll']);
+    assert.equal(bb.views[bb.state.active].platform.id, 'mock-key', 'falls back to a site that is still shown');
+    bb.navigate('next');
+    await sleep(900);
+    assert.equal(bb.views[bb.state.active].platform.id, 'mock-scroll', 'rotation skips the hidden site');
+    assert.equal(bb.setPlatformShown('mock-key', false), true);
+    assert.equal(bb.setPlatformShown('mock-scroll', false), false, 'the last site cannot be turned off');
+    assert.deepEqual(ids(), ['mock-scroll']);
+    bb.setPlatformShown('mock-key', true);
+    bb.setPlatformShown('mock-click', true);
+    assert.deepEqual(ids(), ['mock-key', 'mock-click', 'mock-scroll']);
+    assert.equal(bb.views[bb.state.active].platform.id, 'mock-scroll', 'the site being watched stays in front');
+    await sleep(1500);
+    assert.deepEqual((await look(1)).playing, [], 'a site turned back on loads paused');
+    assert.deepEqual((await look(2)).playing.length, 1, 'the visible site keeps playing');
+    console.log('site picker ok');
+
     console.log('\nSMOKE TEST PASSED');
     app.exit(0);
   } catch (err) {

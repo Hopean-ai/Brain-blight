@@ -54,6 +54,90 @@ function writeSettings(patch) {
 }
 
 // ---------------------------------------------------------------------------
+// Which sites are in the rotation
+//
+// We remember the sites that are switched off (not the ones that are on), so
+// a platform added to the config later shows up without any extra step.
+
+function shownPlatforms() {
+  const hidden = new Set(readSettings().hiddenPlatforms || []);
+  const shown = config.platforms.filter((p) => !hidden.has(p.id));
+  return shown.length ? shown : config.platforms.slice(0, 1);
+}
+
+const isShown = (id) => shownPlatforms().some((p) => p.id === id);
+
+// Turn one site on or off. Sites that are off have no page at all, so they
+// cost nothing; their login is kept and comes back when they are turned on.
+function setPlatformShown(id, shown) {
+  if (!config.platforms.some((p) => p.id === id)) return false;
+  const hidden = new Set(readSettings().hiddenPlatforms || []);
+  if (shown) hidden.delete(id);
+  else hidden.add(id);
+  // Always keep at least one site.
+  if (!config.platforms.some((p) => !hidden.has(p.id))) return false;
+  writeSettings({ hiddenPlatforms: [...hidden] });
+  applySelection();
+  return true;
+}
+
+function applySelection() {
+  if (!win) return;
+  const wanted = shownPlatforms();
+  const current = views[state.active]?.platform.id;
+  const setupId = views[state.setupIndex ?? 0]?.platform.id;
+
+  const byId = new Map(views.map((e) => [e.platform.id, e]));
+  const next = wanted.map((platform) => {
+    const existing = byId.get(platform.id);
+    if (existing) {
+      byId.delete(platform.id);
+      return existing;
+    }
+    const entry = createPlatformView(platform);
+    win.contentView.addChildView(entry.view);
+    entry.view.webContents.loadURL(platform.feedUrl).catch(() => {});
+    return entry;
+  });
+  for (const entry of byId.values()) {
+    win.contentView.removeChildView(entry.view);
+    entry.view.webContents.close();
+  }
+  views.splice(0, views.length, ...next);
+  layout();
+  buildMenu();
+
+  const find = (id) => Math.max(0, views.findIndex((e) => e.platform.id === id));
+  if (state.mode === 'setup') {
+    const keep = views.some((e) => e.platform.id === setupId);
+    if (keep) {
+      state.setupIndex = find(setupId);
+      setActive(state.setupIndex);
+    } else {
+      setupGo(Math.min(state.setupIndex ?? 0, views.length - 1));
+    }
+  } else {
+    setActive(find(current));
+  }
+}
+
+function sitesMenuItems() {
+  return config.platforms.map((p) => ({
+    label: p.name,
+    type: 'checkbox',
+    checked: isShown(p.id),
+    click: () => {
+      if (!setPlatformShown(p.id, !isShown(p.id))) buildMenu(); // undo the tick
+    },
+  }));
+}
+
+function popupSitesMenu() {
+  if (!win) return;
+  Menu.buildFromTemplate(sitesMenuItems()).popup({ window: win, x: 8, y: BAR_HEIGHT });
+}
+
+// ---------------------------------------------------------------------------
 // State
 
 let win = null;
@@ -320,6 +404,7 @@ ipcMain.on('ui:setup-next', () => {
 ipcMain.on('ui:setup-back', () => setupGo(state.setupIndex - 1));
 ipcMain.on('ui:setup-finish', () => finishSetup());
 ipcMain.on('ui:reload', () => reloadCurrentFeed());
+ipcMain.on('ui:sites', () => popupSitesMenu());
 ipcMain.on('ui:import-cookies', () => importCookies(state.mode === 'setup' ? state.setupIndex : state.active));
 
 // ---------------------------------------------------------------------------
@@ -395,6 +480,7 @@ function buildMenu() {
         ...(process.platform === 'darwin' ? [] : [{ type: 'separator' }, { role: 'quit' }]),
       ],
     },
+    { label: 'Sites', submenu: sitesMenuItems() },
     // Needed on macOS so copy/paste works in login forms.
     { role: 'editMenu' },
     { role: 'windowMenu' },
@@ -427,7 +513,7 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  for (const platform of config.platforms) {
+  for (const platform of shownPlatforms()) {
     const entry = createPlatformView(platform);
     views.push(entry);
     win.contentView.addChildView(entry.view);
@@ -461,4 +547,4 @@ app.on('window-all-closed', () => {
 });
 
 // Exposed for the smoke test only.
-module.exports = { state, views, navigate, finishSetup, importCookies };
+module.exports = { state, views, navigate, finishSetup, importCookies, setPlatformShown };
