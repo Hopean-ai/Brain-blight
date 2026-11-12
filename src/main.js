@@ -56,12 +56,19 @@ function writeSettings(patch) {
 // ---------------------------------------------------------------------------
 // Which sites are in the rotation
 //
-// We remember the sites that are switched off (not the ones that are on), so
-// a platform added to the config later shows up without any extra step.
+// Until you choose, only the sites that aren't marked `defaultOn: false` in
+// the config are shown. Once you use the Sites picker we remember exactly
+// which ones you picked.
+
+function shownIds() {
+  const chosen = readSettings().shownPlatforms;
+  if (Array.isArray(chosen)) return new Set(chosen);
+  return new Set(config.platforms.filter((p) => p.defaultOn !== false).map((p) => p.id));
+}
 
 function shownPlatforms() {
-  const hidden = new Set(readSettings().hiddenPlatforms || []);
-  const shown = config.platforms.filter((p) => !hidden.has(p.id));
+  const ids = shownIds();
+  const shown = config.platforms.filter((p) => ids.has(p.id));
   return shown.length ? shown : config.platforms.slice(0, 1);
 }
 
@@ -71,12 +78,12 @@ const isShown = (id) => shownPlatforms().some((p) => p.id === id);
 // cost nothing; their login is kept and comes back when they are turned on.
 function setPlatformShown(id, shown) {
   if (!config.platforms.some((p) => p.id === id)) return false;
-  const hidden = new Set(readSettings().hiddenPlatforms || []);
-  if (shown) hidden.delete(id);
-  else hidden.add(id);
+  const ids = new Set(shownPlatforms().map((p) => p.id));
+  if (shown) ids.add(id);
+  else ids.delete(id);
   // Always keep at least one site.
-  if (!config.platforms.some((p) => !hidden.has(p.id))) return false;
-  writeSettings({ hiddenPlatforms: [...hidden] });
+  if (ids.size === 0) return false;
+  writeSettings({ shownPlatforms: [...ids] });
   applySelection();
   return true;
 }

@@ -6,6 +6,8 @@
 //   id          Stable key. Also names the persistent login partition
 //               ("persist:<id>"), so changing it logs you out of that platform.
 //   name        Label shown in the top bar.
+//   defaultOn   Set to false to start with this site switched off. It can be
+//               turned on from the Sites button, and the choice is remembered.
 //   enabled     Set to false to remove a platform from the app entirely. To
 //               just hide one, use the Sites button in the app instead.
 //   feedUrl     Page that shows the vertical short-form feed.
@@ -96,6 +98,7 @@ module.exports = {
     {
       id: 'facebook',
       name: 'FB Reels',
+      defaultOn: false,
       enabled: true,
       feedUrl: 'https://www.facebook.com/reel/',
       loginUrl: 'https://www.facebook.com/login/',
@@ -116,6 +119,7 @@ module.exports = {
     {
       id: 'snapchat',
       name: 'Spotlight',
+      defaultOn: false,
       enabled: true,
       feedUrl: 'https://www.snapchat.com/spotlight',
       loginUrl: 'https://accounts.snapchat.com/accounts/v2/login',
@@ -136,6 +140,7 @@ module.exports = {
       // timeline and only stops on posts that contain a video.
       id: 'x',
       name: 'X',
+      defaultOn: false,
       enabled: true,
       feedUrl: 'https://x.com/home',
       loginUrl: 'https://x.com/i/flow/login',
@@ -148,6 +153,7 @@ module.exports = {
       // Bluesky's own "Video" feed. Swap feedUrl for any other feed you like.
       id: 'bluesky',
       name: 'Bluesky',
+      defaultOn: false,
       enabled: true,
       feedUrl: 'https://bsky.app/profile/bsky.app/feed/thevids',
       loginUrl: 'https://bsky.app/',
@@ -162,6 +168,7 @@ module.exports = {
       // Change the subreddits in feedUrl to taste (join names with "+").
       id: 'reddit',
       name: 'Reddit',
+      defaultOn: false,
       enabled: true,
       feedUrl: 'https://www.reddit.com/r/TikTokCringe+Unexpected+nextfuckinglevel+funnyvideos/',
       loginUrl: 'https://www.reddit.com/login/',
@@ -175,6 +182,7 @@ module.exports = {
       // walks the normal feed and only stops on posts that contain a video.
       id: 'linkedin',
       name: 'LinkedIn',
+      defaultOn: false,
       enabled: true,
       feedUrl: 'https://www.linkedin.com/feed/',
       loginUrl: 'https://www.linkedin.com/login',

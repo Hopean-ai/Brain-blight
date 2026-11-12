@@ -71,6 +71,7 @@
     {
       "id": "facebook",
       "name": "FB Reels",
+      "defaultOn": false,
       "enabled": true,
       "feedUrl": "https://m.facebook.com/reel/",
       "loginUrl": "https://m.facebook.com/login/",
@@ -92,6 +93,7 @@
     {
       "id": "snapchat",
       "name": "Spotlight",
+      "defaultOn": false,
       "enabled": true,
       "feedUrl": "https://www.snapchat.com/spotlight",
       "loginUrl": "https://accounts.snapchat.com/accounts/v2/login",
@@ -113,6 +115,7 @@
     {
       "id": "x",
       "name": "X",
+      "defaultOn": false,
       "enabled": true,
       "feedUrl": "https://x.com/home",
       "loginUrl": "https://x.com/i/flow/login",
@@ -133,6 +136,7 @@
     {
       "id": "bluesky",
       "name": "Bluesky",
+      "defaultOn": false,
       "enabled": true,
       "feedUrl": "https://bsky.app/profile/bsky.app/feed/thevids",
       "loginUrl": "https://bsky.app/",
@@ -152,6 +156,7 @@
     {
       "id": "reddit",
       "name": "Reddit",
+      "defaultOn": false,
       "enabled": true,
       "feedUrl": "https://www.reddit.com/r/TikTokCringe+Unexpected+nextfuckinglevel+funnyvideos/",
       "loginUrl": "https://www.reddit.com/login/",
@@ -171,6 +176,7 @@
     {
       "id": "linkedin",
       "name": "LinkedIn",
+      "defaultOn": false,
       "enabled": true,
       "feedUrl": "https://www.linkedin.com/feed/",
       "loginUrl": "https://www.linkedin.com/login",

@@ -44,7 +44,7 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
     private let noticeLabel = UILabel()
 
     private static let setupDoneKey = "setupDone"
-    private static let hiddenKey = "hiddenPlatforms"
+    private static let shownKey = "shownPlatforms"
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
@@ -66,16 +66,19 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
 
     // MARK: - Which sites are in the rotation
 
-    /// We remember the sites that are switched off (not the ones that are on),
-    /// so a platform added to the config later shows up by itself.
-    private var hiddenIds: Set<String> {
-        get { Set(UserDefaults.standard.stringArray(forKey: Self.hiddenKey) ?? []) }
-        set { UserDefaults.standard.set(Array(newValue), forKey: Self.hiddenKey) }
+    /// Until you choose, only sites not marked `defaultOn: false` are shown.
+    /// Once you use the Sites picker we remember exactly which ones you picked.
+    private var shownIds: Set<String> {
+        get {
+            if let chosen = UserDefaults.standard.stringArray(forKey: Self.shownKey) { return Set(chosen) }
+            return Set(config.platforms.filter { $0.defaultOn != false }.map(\.id))
+        }
+        set { UserDefaults.standard.set(Array(newValue), forKey: Self.shownKey) }
     }
 
     private func shownPlatforms() -> [Platform] {
-        let hidden = hiddenIds
-        let shown = config.platforms.filter { !hidden.contains($0.id) }
+        let ids = shownIds
+        let shown = config.platforms.filter { ids.contains($0.id) }
         return shown.isEmpty ? Array(config.platforms.prefix(1)) : shown
     }
 
@@ -97,10 +100,10 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
     /// when the change was refused (the last site can't be turned off).
     @discardableResult
     private func setPlatform(_ id: String, shown: Bool) -> Bool {
-        var hidden = hiddenIds
-        if shown { hidden.remove(id) } else { hidden.insert(id) }
-        guard config.platforms.contains(where: { !hidden.contains($0.id) }) else { return false }
-        hiddenIds = hidden
+        var ids = Set(shownPlatforms().map(\.id))
+        if shown { ids.insert(id) } else { ids.remove(id) }
+        guard !ids.isEmpty else { return false }
+        shownIds = ids
         applySelection()
         return true
     }
