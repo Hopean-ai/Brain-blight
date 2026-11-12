@@ -14,6 +14,7 @@ struct Platform: Codable {
     let enabled: Bool?
     let feedUrl: String
     let loginUrl: String?
+    let cookieDomains: [String]?
     let itemSelector: String?
     let advance: [AdvanceStep]?
     let verifyMs: Int?

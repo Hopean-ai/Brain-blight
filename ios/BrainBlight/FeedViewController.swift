@@ -1,4 +1,5 @@
 import UIKit
+import UniformTypeIdentifiers
 import WebKit
 
 /// The whole app: one persistent WKWebView per platform, stacked in the same
@@ -6,7 +7,7 @@ import WebKit
 /// and the injected agent keeps their videos paused. Every "next" advances the
 /// platform you are leaving (in the background, so its next video is loaded
 /// when you come back) and then shows the next platform.
-final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDelegate, WKNavigationDelegate {
+final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDelegate, WKNavigationDelegate, UIDocumentPickerDelegate {
     private enum Mode: String { case feed, setup }
 
     private final class Page {
@@ -34,7 +35,9 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
     private let muteButton = UIButton(type: .system)
     private let setupBar = UIStackView()
     private let setupLabel = UILabel()
+    private let setupImport = UIButton(type: .system)
     private let setupBack = UIButton(type: .system)
+    private var importTarget: Page?
     private let setupNext = UIButton(type: .system)
     private let setupDone = UIButton(type: .system)
     private let noticeLabel = UILabel()
@@ -194,6 +197,55 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         setActive(0)
     }
 
+    // MARK: - Import a login from a browser cookie export
+
+    /// For when a site refuses to sign in inside the app: sign in with a normal
+    /// browser, export its cookies to a file, and pick that file here.
+    private func startImport() {
+        guard pages.indices.contains(setupIndex) else { return }
+        importTarget = pages[setupIndex]
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.plainText, .json, .text, .data], asCopy: true)
+        picker.delegate = self
+        picker.allowsMultipleSelection = false
+        present(picker, animated: true)
+    }
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let page = importTarget, let url = urls.first else { return }
+        importTarget = nil
+        guard let data = try? Data(contentsOf: url) else {
+            showAlert("Import failed", "That file couldn't be read.")
+            return
+        }
+        let text = String(decoding: data, as: UTF8.self)
+        let cookies = CookieImport.cookies(from: text, keeping: page.platform.cookieDomains)
+        guard !cookies.isEmpty else {
+            let sites = (page.platform.cookieDomains ?? []).joined(separator: ", ")
+            showAlert("No \(page.platform.name) login found", "Export the cookies while signed in on \(sites), then try again.")
+            return
+        }
+        let store = page.webView.configuration.websiteDataStore.httpCookieStore
+        let group = DispatchGroup()
+        for cookie in cookies {
+            group.enter()
+            store.setCookie(cookie) { group.leave() }
+        }
+        group.notify(queue: .main) { [weak self] in
+            guard let self else { return }
+            self.load(page, page.platform.feedUrl)
+            self.showAlert(
+                "Imported your \(page.platform.name) login",
+                "\(cookies.count) cookies imported. The feed is reloading. You should now be signed in. Delete the cookie file afterwards."
+            )
+        }
+    }
+
+    private func showAlert(_ title: String, _ message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
     // MARK: - WKScriptMessageHandler
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -303,9 +355,11 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         setupLabel.font = .systemFont(ofSize: 13)
         setupLabel.adjustsFontSizeToFitWidth = true
         setupLabel.minimumScaleFactor = 0.8
+        setupImport.setTitle("Import", for: .normal)
         setupBack.setTitle("Back", for: .normal)
         setupDone.setTitle("Done", for: .normal)
-        [setupBack, setupDone].forEach { $0.tintColor = .lightGray }
+        [setupImport, setupBack, setupDone].forEach { $0.tintColor = .lightGray }
+        setupImport.addAction(UIAction { [weak self] _ in self?.startImport() }, for: .touchUpInside)
         setupNext.configuration = Self.pillConfig(title: "Next", selected: true)
         setupBack.addAction(UIAction { [weak self] _ in
             guard let self else { return }
@@ -319,7 +373,7 @@ final class FeedViewController: UIViewController, WKScriptMessageHandler, WKUIDe
         setupBar.axis = .horizontal
         setupBar.spacing = 8
         setupBar.alignment = .center
-        [setupLabel, UIView(), setupBack, setupNext, setupDone].forEach(setupBar.addArrangedSubview)
+        [setupLabel, UIView(), setupImport, setupBack, setupNext, setupDone].forEach(setupBar.addArrangedSubview)
         setupLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         [feedBar, setupBar].forEach {
