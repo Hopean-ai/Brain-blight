@@ -34,6 +34,11 @@ With a free Apple ID, Apple makes sideloaded apps stop opening after **7 days**.
 ## Using it
 
 - **First launch** walks you through each platform's login page. Tap *Next* to move on, or *Done* to skip the rest. Come back any time with **Log in** in the top bar.
+- **If a site won't let you sign in** (Google sometimes blocks sign-in inside apps), import the login from your computer's browser instead:
+  1. On your computer, open a private/incognito window, sign in to the site (for example youtube.com), and export its cookies with the **Get cookies.txt LOCALLY** extension. Close the window without signing out.
+  2. Send the file to your iPhone (iCloud Drive, AirDrop, or email it to yourself and save it to Files).
+  3. In the app, tap **Log in**, go to that platform's step, tap **Import**, and pick the file.
+  4. Delete the file afterwards, since it holds your login.
 - **Swipe up** for next, **swipe down** to go back a platform, **tap a name** in the top bar to jump to it.
 - Swipes that start inside a comments or caption panel scroll that panel normally.
 - The speaker button mutes and unmutes. Sound plays even with the silent switch on.
